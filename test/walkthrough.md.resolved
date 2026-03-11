@@ -1,0 +1,44 @@
+# Walkthrough: Repository Refactoring (Mongoose Isolation)
+
+We have successfully refactored the entire project to strictly adhere to the Repository Pattern. All Mongoose-specific logic (`Types.ObjectId`, `$push`, `$pull`, `populate`, `toObject()`, aggregation pipelines) has been completely removed from the Service layers and encapsulated within the Repositories.
+
+## The Goal
+The primary objective was to make the Service layer **database-agnostic**. Services should not know that the underlying database is MongoDB or that the ORM is Mongoose. They should only deal with plain JavaScript objects and primitives (like `string` IDs).
+
+## Modules Refactored
+
+### 1. Quiz Module
+The heaviest offender. We removed over 35 imports/uses of `Types.ObjectId` and Mongoose document types from [QuizService](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/modules/quiz/quiz.service.ts#19-356).
+*   **Added to [QuestionRepository](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/question.repository.ts#8-40)**: [findByDifficultyAndScope](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/question.repository.ts#24-39)
+*   **Added to [QuizRepository](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/quiz.repository.ts#8-42)**: [findByIdWithQuestions](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/quiz.repository.ts#24-28), [findByLessonId](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/quiz.repository.ts#29-33), [toggleHidden](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/quiz.repository.ts#34-41)
+*   **Added to [QuizResultRepository](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/quiz-result.repository.ts#8-126)**: 10 distinct methods including complex aggregation pipelines (e.g., [getAverageByLesson](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/quiz-result.repository.ts#45-53), [findStudentAttemptsPopulated](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/quiz-result.repository.ts#90-101))
+*   **Updated [QuizController](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/modules/quiz/quiz.controller.ts#24-171)**: Boundary conversion using `_id.toString()`.
+
+### 2. Lesson Module
+Removed Mongoose dependencies from [LessonService](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/modules/lesson/lesson.service.ts#13-276).
+*   **Added to [LessonRepository](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/lesson.repository.ts#8-43)**: [findLessonsByCourse](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/lesson.repository.ts#24-34), [toggleHidden](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/quiz.repository.ts#34-41)
+*   **Updated [LessonController](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/modules/lesson/lesson.controller.ts#25-126)**: Boundary conversion using `_id.toString()`.
+
+### 3. Course Module
+Removed Mongoose dependencies and `createFromHexString` bypasses from [CourseService](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/modules/course/course.service.ts#15-207).
+*   **Added to [CourseRepository](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/course.repository.ts#10-71)**: [addQuizToCourse](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/course.repository.ts#35-41), [removeQuizFromCourse](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/course.repository.ts#42-48), [addLessonToCourse](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/course.repository.ts#49-55), [removeLessonFromCourse](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/course.repository.ts#56-62), [findByTeacher](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/DB/repository/course.repository.ts#63-70).
+*   **Updated [CourseController](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/modules/course/course.controller.ts#31-83)**: Ensures strings are passed downward.
+
+### 4. Teacher Module
+Cleaned up the [TeacherService](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/modules/teacher/teacher.service.ts#6-40) signature.
+*   **Updated [TeacherService](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/modules/teacher/teacher.service.ts#6-40)**: Removed `Types.ObjectId` from parameter types. Utilizing `CourseRepository.findByTeacher`.
+*   **Updated [TeacherController](file:///c:/Users/user/Desktop/nestjs/edu-vacation/src/modules/teacher/teacher.controller.ts#15-47)**: Boundary conversion using `user._id.toString()`.
+
+## The New Architectural Boundary
+Mongoose is now contained strictly behind the Repository wall. 
+
+```mermaid
+graph TD
+    Controller["Controller Layer\n(Extracts User, Converts _id to string)"] --> Service["Service Layer\n(Pure Business Logic, Plain Strings)"]
+    Service --> Repository["Repository Layer\n(Converts strings to Types.ObjectId, runs $push/aggregate)"]
+    Repository --> DB[(MongoDB / Mongoose)]
+```
+
+## Verification
+*   We ran `npm run build`.
+*   **Result**: 0 TypeScript compilation errors. The types correctly align across the fully decoupled boundaries.
