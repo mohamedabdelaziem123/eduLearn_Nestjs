@@ -89,6 +89,53 @@ export class RedisService implements OnModuleDestroy {
     await this.redisClient.del(key);
   }
 
+  // ====================================================================
+  // --- NEW GENERIC METHODS ADDED FOR OTP FLOW (DO NOT DELETE) ---
+  // ====================================================================
+
+  /**
+   * Get a generic string value from Redis
+   */
+  async get(key: string): Promise<string | null> {
+    try {
+      return await this.redisClient.get(key);
+    } catch (error) {
+      this.logger.error(`Failed to get key: ${key}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set a generic string value in Redis with an optional expiration
+   */
+  async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
+    try {
+      if (ttlSeconds) {
+        // 'EX' tells Redis the TTL is in seconds
+        await this.redisClient.set(key, value, 'EX', ttlSeconds);
+      } else {
+        await this.redisClient.set(key, value);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to set key: ${key}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a generic key from Redis
+   */
+  async del(key: string): Promise<void> {
+    try {
+      await this.redisClient.del(key);
+    } catch (error) {
+      this.logger.error(`Failed to delete key: ${key}`, error);
+      throw error;
+    }
+  }
+
+  // ====================================================================
+
   /**
    * Clean up connection when the app stops
    */

@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsEnum,
   IsInt,
@@ -32,7 +32,7 @@ export class CreateTeacherDto {
 
   @IsString()
   @IsNotEmpty()
-  career: string;
+  degree: string;
 }
 
 // ── User query params ─────────────────────────────────────────────────────
@@ -56,7 +56,11 @@ export class GetUsersQueryDto {
   @IsOptional()
   role?: RoleEnum;
 
-  @Type(() => Boolean)
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
   @IsBoolean()
   @IsOptional()
   isBlocked?: boolean;

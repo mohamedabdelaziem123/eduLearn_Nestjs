@@ -45,7 +45,7 @@ export class AdminService {
           lastName: data.lastName,
           email: data.email,
           password: data.password,
-          career: data.career,
+          degree: data.degree,
           role: RoleEnum.teacher,
           provider: providerEnum.system,
         },
@@ -56,6 +56,42 @@ export class AdminService {
       teacherId: newTeacher._id,
       email: newTeacher.email,
     };
+  }
+
+  /**
+   * Delete a teacher account
+   * @param teacherId - The teacher's user ID
+   * @throws NotFoundException if teacher not found
+   * @throws BadRequestException if user is not a teacher or has assigned courses
+   */
+  async deleteTeacher(teacherId: string): Promise<void> {
+    const teacher = await this.userRepository.findOne({
+      filter: { _id: teacherId },
+    });
+
+    if (!teacher) {
+      throw new NotFoundException('Teacher not found');
+    }
+
+    if (teacher.role !== RoleEnum.teacher) {
+      throw new BadRequestException('User is not a teacher');
+    }
+
+    // Check if teacher has any assigned courses
+    const assignedCourses = await this.courseRepository.countDocuments({
+      teacherId: teacher._id,
+    });
+
+    if (assignedCourses > 0) {
+      throw new BadRequestException(
+        `Cannot delete teacher. They have ${assignedCourses} assigned course(s). Please reassign or delete the courses first.`,
+      );
+    }
+
+    // Delete the teacher account
+    await this.userRepository.deleteOne({
+      filter: { _id: teacherId },
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -111,7 +147,9 @@ export class AdminService {
     const filter: Record<string, any> = {};
 
     if (query.role) filter.role = query.role;
-    if (typeof query.isBlocked === 'boolean') filter.isBlocked = query.isBlocked;
+    if (query.isBlocked !== undefined) {
+      filter.isBlocked = query.isBlocked;
+    }
 
     // Search by name or email (case-insensitive partial match)
     if (query.search) {

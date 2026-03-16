@@ -7,9 +7,8 @@ import {
 import { SubjectRepository, UserRepository } from 'src/DB';
 import { SubjectDocument } from 'src/DB/model/subject.model';
 import { CourseRepository } from 'src/DB/repository/course.repository';
-import { CdnService, CourseStatus, EntityId, RoleEnum, toObjectId } from 'src/common';
+import { CdnService, EntityId, RoleEnum } from 'src/common';
 import { CreateSubjectDto, UpdateSubjectDto } from './dto/subject.dto';
-import { Types } from 'mongoose';
 
 
 @Injectable()
@@ -121,13 +120,8 @@ export class SubjectService {
             throw new NotFoundException('Subject not found');
         }
 
-        // Find all published courses for this subject and extract unique teacher IDs
-        const courses = await this.courseRepository.find({
-            filter: { subjectId, status: CourseStatus.PUBLISHED },
-            projection: 'teacherId',
-        });
-
-        const teacherIds = [...new Set(courses.map((c: any) => String(c.teacherId)))];
+        // Find unique teacher IDs from courses in this subject
+        const teacherIds = await this.courseRepository.findTeacherIdsBySubject(subjectId);
 
         if (teacherIds.length === 0) {
             return [];

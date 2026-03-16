@@ -102,7 +102,7 @@ export class CourseService {
           $in: [
             CourseStatus.IN_PROGRESS,
             CourseStatus.PUBLISHED,
-            CourseStatus.ARCHIVED,
+            
           ],
         },
       };
@@ -197,26 +197,10 @@ export class CourseService {
       }
     }
 
-    // 3. Prepare the update payload
-    const updatePayload: any = { ...data };
-
-    if (data.teacherId) {
-      updatePayload.teacherId = data.teacherId;
-    }
-
-    if (data.subjectId) {
-      updatePayload.subjectId = data.subjectId;
-    }
-
-    if (imageUrl) {
-      updatePayload.image = imageUrl;
-    }
-
-    // 4. Update the database
-    const updatedCourse = await this.courseRepository.findOneAndUpdate({
-      filter: { _id: courseId },
-      update: updatePayload,
-      options: { new: true },
+    // 3. Delegate to repository (handles ObjectId casting for teacherId/subjectId)
+    const updatedCourse = await this.courseRepository.updateCourse(courseId, {
+      ...data,
+      ...(imageUrl ? { image: imageUrl } : {}),
     });
 
     // Handle DB failure after S3 upload
@@ -347,11 +331,10 @@ export class CourseService {
     if (!course) throw new NotFoundException('Course not found');
 
     if (
-      role !== RoleEnum.admin &&
-      String(course.teacherId) !== String(userId)
+      role !== RoleEnum.admin
     ) {
       throw new ForbiddenException(
-        'Only the assigned teacher or an admin can archive this course.',
+        'Only the  admin can archive this course.',
       );
     }
 

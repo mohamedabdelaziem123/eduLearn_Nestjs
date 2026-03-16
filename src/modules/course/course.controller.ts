@@ -169,8 +169,11 @@ export class CourseController {
     });
   }
 
-  /** Any → ARCHIVED  (Admin or owning Teacher) */
-  @Auth([RoleEnum.admin, RoleEnum.teacher], tokenEnum.access)
+  /**
+ * Any non-ARCHIVED → ARCHIVED  (Admin only)  // Fixed comment
+ * Retires the course from the platform.
+ */
+  @Auth([RoleEnum.admin], tokenEnum.access)
   @Patch(':id/archive')
   async archiveCourse(
     @Param('id') id: string,

@@ -8,6 +8,5 @@ export * from './question.repository';
 export * from './quiz.repository';
 export * from './quiz-result.repository';
 export * from './quiz-session.repository';
-export * from './otp.repository';
 export * from './cart.repository';
 export * from './order.repository';

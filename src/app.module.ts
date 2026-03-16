@@ -18,6 +18,7 @@ import { SubjectModule } from './modules/subject/subject.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { QuestionModule } from './modules/question/question.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { APP_GUARD } from '@nestjs/core';
     OrderModule,
     CartModule,
     SubjectModule,
+    QuestionModule,
   ],
   controllers: [AppController],
   providers: [

@@ -7,5 +7,4 @@ export * from './question.model';
 export * from './quiz.model';
 export * from './quiz-result.model';
 export * from './quiz-session.model';
-export * from './otp.model';
 export * from './order.model';

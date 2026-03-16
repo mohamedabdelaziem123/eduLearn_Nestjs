@@ -9,7 +9,7 @@ import { HydratedDocument, Types } from 'mongoose';
 import { generateHash } from 'src/common';
 import { GenderEnum, providerEnum, RoleEnum } from 'src/common/enums';
 import { IUser } from 'src/common/interfaces/user.interface';
-import { OtpDocument } from './otp.model';
+
 
 @Schema({
   timestamps: true,
@@ -83,7 +83,7 @@ export class User implements IUser {
       return this.role === RoleEnum.teacher;
     },
   })
-  career?: string;
+  degree?: string;
 
   @Prop({
     type: Boolean,
@@ -94,14 +94,6 @@ export class User implements IUser {
   })
   isBlocked: boolean;
 
-  @Virtual({
-    options: {
-      localField: '_id',
-      foreignField: 'createdBy',
-      ref: 'Otp',
-    },
-  })
-  otp: OtpDocument[];
 }
 
 export const userSchema = SchemaFactory.createForClass(User);

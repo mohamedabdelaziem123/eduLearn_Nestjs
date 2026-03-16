@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CourseRepository } from 'src/DB/repository/course.repository';
 import { UserDocument, UserRepository } from 'src/DB';
-import { CdnService, GetAllDto, RoleEnum } from 'src/common';
+import { CdnService, CourseStatus, GetAllDto, RoleEnum } from 'src/common';
 
 @Injectable()
 export class TeacherService {
@@ -33,7 +33,7 @@ export class TeacherService {
     const sizeParam = Number(size);
 
     return this.courseRepository.paginate({
-      filter: { teacherId: user._id.toString() } as any,
+      filter: { teacherId: user._id, status: { $in: [CourseStatus.PUBLISHED, CourseStatus.IN_PROGRESS] } },
       size: sizeParam,
       page: pageParam,
       options: {

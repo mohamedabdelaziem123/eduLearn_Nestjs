@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Get, Query, Delete } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import {
   CreateTeacherDto,
@@ -23,6 +23,14 @@ export class AdminController {
   ): Promise<IResponse<createTeacherResponse>> {
     const teacherData = await this.adminService.createTeacherAccount(body);
     return successResponse<createTeacherResponse>({ data: teacherData });
+  }
+
+  @Delete('teacher/:teacherId')
+  async deleteTeacher(
+    @Param('teacherId') teacherId: string,
+  ): Promise<IResponse> {
+    await this.adminService.deleteTeacher(teacherId);
+    return successResponse({ message: 'Teacher deleted successfully' });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

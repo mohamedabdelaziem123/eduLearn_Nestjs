@@ -56,4 +56,21 @@ export class QuestionRepository extends DatabaseRepository<
     }
     return this.model.find(filter);
   }
+
+  /** Find all questions belonging to a specific lesson */
+  async findByLesson(
+    lessonId: EntityId,
+    courseId?: EntityId,
+  ): Promise<QuestionDocument[]> {
+    const filter: Record<string, any> = {
+      lessonId: toObjectId(lessonId),
+    };
+    if (courseId) filter.courseId = toObjectId(courseId);
+    return this.model.find(filter).sort({ createdAt: -1 });
+  }
+
+  /** Delete a question by its ID */
+  async deleteById(questionId: EntityId): Promise<QuestionDocument | null> {
+    return this.model.findByIdAndDelete(toObjectId(questionId));
+  }
 }

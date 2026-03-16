@@ -5,7 +5,7 @@ import { ICourse } from 'src/common/interfaces/course.interface';
 
 export type CourseDocument = HydratedDocument<Course>;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, strict:true })
 export class Course implements ICourse {
   @Prop({ required: true, trim: true, maxlength: 100 })
   title: string;

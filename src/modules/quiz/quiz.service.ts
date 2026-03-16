@@ -12,7 +12,6 @@ import {
   CourseRepository,
 } from 'src/DB';
 import { DifficultyLevel } from 'src/common';
-import { CreateQuestionDto } from './dto/create-question.dto';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
 
@@ -32,21 +31,7 @@ export class QuizService {
   // TEACHER OPERATIONS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /** Create a new question (optionally linked to a lesson) */
-  async createQuestion(teacherId: string, dto: CreateQuestionDto) {
-    if (dto.courseId) {
-      await this.verifyOwnership(dto.courseId, teacherId);
-    }
 
-    return this.questionRepo.createQuestion({
-      title: dto.title,
-      type: dto.type,
-      difficulty: dto.difficulty,
-      options: dto.options,
-      lessonId: dto.lessonId,
-      courseId: dto.courseId,
-    });
-  }
 
   /** Create a quiz — auto-picks equal number of questions from each difficulty level */
   async createQuiz(teacherId: string, dto: CreateQuizDto) {
@@ -126,29 +111,31 @@ export class QuizService {
     return this.quizRepo.toggleHidden(quizId);
   }
 
-  /** Teacher: get all quiz results for a specific lesson */
-  async getResultsByLesson(teacherId: string, lessonId: string) {
+  /** Teacher: get paginated quiz results for a specific lesson */
+  async getResultsByLesson(
+    teacherId: string,
+    lessonId: string,
+    options: { page?: number; size?: number; search?: string } = {},
+  ) {
     const quiz = await this.quizRepo.findByLessonId(lessonId);
     if (!quiz) throw new NotFoundException('No quiz found for this lesson');
 
     await this.verifyOwnership(quiz.courseId.toString(), teacherId);
 
-    const results =
-      await this.quizResultRepo.findByLessonWithStudents(lessonId);
-    const averageScore = await this.quizResultRepo.getAverageByLesson(lessonId);
-
-    return { results, averageScore };
+    return this.quizResultRepo.findByLessonPaginated(lessonId, options);
   }
 
-  /** Teacher: get all quiz results for an entire course */
-  async getResultsByCourse(teacherId: string, courseId: string) {
+  /** Teacher: get paginated quiz results for an entire course */
+  async getResultsByCourse(
+    teacherId: string,
+    courseId: string,
+    options: { page?: number; size?: number; search?: string } = {},
+  ) {
     await this.verifyOwnership(courseId, teacherId);
 
-    const results = await this.quizResultRepo.findByCourseWithDetails(courseId);
-    const averageScore = await this.quizResultRepo.getAverageByCourse(courseId);
-
-    return { results, averageScore };
+    return this.quizResultRepo.findByCoursePaginated(courseId, options);
   }
+
 
   // ═══════════════════════════════════════════════════════════════════════════
   // STUDENT OPERATIONS

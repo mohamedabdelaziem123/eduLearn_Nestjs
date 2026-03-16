@@ -63,25 +63,124 @@ export class QuizResultRepository extends DatabaseRepository<
     return this.model.aggregate(pipeline);
   }
 
-  /** Find all results for a lesson, with student info populated */
-  async findByLessonWithStudents(
+  /**
+   * Paginated quiz results for a lesson — sorted by highest grade,
+   * searchable by student name/email.
+   */
+  async findByLessonPaginated(
     lessonId: EntityId,
-  ): Promise<QuizResultDocument[]> {
-    return this.model
-      .find({ lessonId: toObjectId(lessonId) })
-      .populate('studentId')
-      .sort({ createdAt: -1 });
+    options: { page?: number; size?: number; search?: string },
+  ): Promise<{ results: any[]; totalCount: number; averageScore: number }> {
+    return this._paginatedResults(
+      { lessonId: toObjectId(lessonId) },
+      options,
+    );
   }
 
-  /** Find all results for a course, with student and quiz info populated */
-  async findByCourseWithDetails(
+  /**
+   * Paginated quiz results for a course — sorted by highest grade,
+   * searchable by student name/email.
+   */
+  async findByCoursePaginated(
     courseId: EntityId,
-  ): Promise<QuizResultDocument[]> {
-    return this.model
-      .find({ courseId: toObjectId(courseId) })
-      .populate('studentId quizId')
-      .sort({ createdAt: -1 });
+    options: { page?: number; size?: number; search?: string },
+  ): Promise<{ results: any[]; totalCount: number; averageScore: number }> {
+    return this._paginatedResults(
+      { courseId: toObjectId(courseId) },
+      options,
+    );
   }
+
+  /**
+   * Shared aggregation helper for paginated, searchable, sorted-by-grade results.
+   */
+  private async _paginatedResults(
+    matchFilter: Record<string, any>,
+    { page = 1, size = 10, search }: { page?: number; size?: number; search?: string },
+  ): Promise<{ results: any[]; totalCount: number; averageScore: number }> {
+    const pipeline: PipelineStage[] = [
+      { $match: matchFilter },
+
+      // Join student data
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student',
+        },
+      },
+      { $unwind: { path: '$student', preserveNullAndEmptyArrays: true } },
+
+      // Join quiz data
+      {
+        $lookup: {
+          from: 'quizzes',
+          localField: 'quizId',
+          foreignField: '_id',
+          as: 'quiz',
+        },
+      },
+      { $unwind: { path: '$quiz', preserveNullAndEmptyArrays: true } },
+    ];
+
+    // Search filter on student name / email
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      pipeline.push({
+        $match: {
+          $or: [
+            { 'student.firstName': regex },
+            { 'student.lastName': regex },
+            { 'student.email': regex },
+          ],
+        },
+      });
+    }
+
+    // Use $facet to get results + metadata in one query
+    pipeline.push({
+      $facet: {
+        metadata: [{ $count: 'totalCount' }],
+        avgData: [{ $group: { _id: null, avg: { $avg: '$percentage' } } }],
+        results: [
+          { $sort: { percentage: -1 } as any },
+          { $skip: (Math.max(page, 1) - 1) * size },
+          { $limit: size },
+          {
+            $project: {
+              _id: 1,
+              score: 1,
+              totalQuestions: 1,
+              percentage: 1,
+              isPassed: 1,
+              attemptNumber: 1,
+              createdAt: 1,
+              student: {
+                _id: '$student._id',
+                firstName: '$student.firstName',
+                lastName: '$student.lastName',
+                email: '$student.email',
+              },
+              quiz: {
+                _id: '$quiz._id',
+                title: '$quiz.title',
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    const [facetResult] = await this.model.aggregate(pipeline);
+
+    return {
+      results: facetResult.results,
+      totalCount: facetResult.metadata[0]?.totalCount ?? 0,
+      averageScore: Math.round(facetResult.avgData[0]?.avg ?? 0),
+    };
+  }
+
 
   /** Get the average percentage score for a specific lesson */
   async getAverageByLesson(lessonId: EntityId): Promise<number> {

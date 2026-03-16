@@ -1,4 +1,3 @@
-import { OtpDocument } from 'src/DB';
 import { GenderEnum, providerEnum, RoleEnum } from '../enums';
 import { EntityId } from '../types';
 import { ILesson } from './lesson.interface';
@@ -14,8 +13,6 @@ export interface IUser {
 
   password?: string;
 
-  otp?: OtpDocument[];
-
   changeCredentialTime?: Date;
   phone?: string;
   address?: string;
@@ -24,6 +21,6 @@ export interface IUser {
   provider: providerEnum;
   gender: GenderEnum;
   role: RoleEnum;
-  career?: string;
+  degree?: string;
   isBlocked?: boolean;
 }

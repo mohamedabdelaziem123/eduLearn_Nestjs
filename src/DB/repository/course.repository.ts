@@ -109,4 +109,36 @@ export class CourseRepository extends DatabaseRepository<
       .sort({ createdAt: -1 })
       .exec();
   }
+
+  /** Update a course, casting any ID fields to ObjectId */
+  async updateCourse(
+    courseId: EntityId,
+    data: {
+      title?: string;
+      description?: string;
+      teacherId?: EntityId;
+      subjectId?: EntityId;
+      status?: string;
+      image?: string;
+    },
+  ): Promise<TDocument | null> {
+    const update: Record<string, any> = { ...data };
+    if (data.teacherId) update.teacherId = toObjectId(data.teacherId);
+    if (data.subjectId) update.subjectId = toObjectId(data.subjectId);
+
+    return this.findOneAndUpdate({
+      filter: { _id: toObjectId(courseId) },
+      update,
+      options: { new: true },
+    });
+  }
+
+  /** Find unique teacher IDs for courses in a subject */
+  async findTeacherIdsBySubject(subjectId: EntityId): Promise<string[]> {
+    const courses = await this.model.find(
+      { subjectId: toObjectId(subjectId) },
+      { teacherId: 1 },
+    );
+    return [...new Set(courses.map((c) => String(c.teacherId)))];
+  }
 }

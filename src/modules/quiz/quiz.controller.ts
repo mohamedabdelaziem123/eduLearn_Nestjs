@@ -6,14 +6,16 @@ import {
     Body,
     Delete,
     Patch,
+    Query,
     UseGuards,
 } from '@nestjs/common';
 import { QuizService } from './quiz.service';
-import { CreateQuestionDto } from './dto/create-question.dto';
+import { CreateQuestionDto } from '../question/dto/create-question.dto';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
 import {
     Auth,
+    GetAllDto,
     IResponse,
     RoleEnum,
     successResponse,
@@ -31,16 +33,7 @@ export class QuizController {
     // TEACHER ENDPOINTS
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /** POST /quiz/question — Teacher creates a new question */
-    @Auth([RoleEnum.teacher, RoleEnum.admin], tokenEnum.access)
-    @Post('question')
-    async createQuestion(
-        @Body() dto: CreateQuestionDto,
-        @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
-        const data = await this.quizService.createQuestion(_id.toString(), dto);
-        return successResponse({ data, message: 'Question created successfully' });
-    }
+
 
     /** POST /quiz — Teacher creates a new quiz */
     @Auth([RoleEnum.teacher, RoleEnum.admin], tokenEnum.access)
@@ -81,33 +74,38 @@ export class QuizController {
         });
     }
 
-    /** GET /quiz/results/lesson/:lessonId — Teacher views all student results for a lesson */
+    /** GET /quiz/results/lesson/:lessonId — Teacher views paginated student results for a lesson */
     @Auth([RoleEnum.teacher, RoleEnum.admin], tokenEnum.access)
     @Get('results/lesson/:lessonId')
     async getResultsByLesson(
         @Param('lessonId') lessonId: string,
+        @Query() query: GetAllDto,
         @User() { _id }: UserDocument,
     ): Promise<IResponse<any>> {
         const data = await this.quizService.getResultsByLesson(
             _id.toString(),
             lessonId,
+            { page: Number(query.page) || 1, size: Number(query.size) || 10, search: query.search },
         );
         return successResponse({ data, message: 'Lesson results retrieved' });
     }
 
-    /** GET /quiz/results/course/:courseId — Teacher views all student results for a course */
+    /** GET /quiz/results/course/:courseId — Teacher views paginated student results for a course */
     @Auth([RoleEnum.teacher, RoleEnum.admin], tokenEnum.access)
     @Get('results/course/:courseId')
     async getResultsByCourse(
         @Param('courseId') courseId: string,
+        @Query() query: GetAllDto,
         @User() { _id }: UserDocument,
     ): Promise<IResponse<any>> {
         const data = await this.quizService.getResultsByCourse(
             _id.toString(),
             courseId,
+            { page: Number(query.page) || 1, size: Number(query.size) || 10, search: query.search },
         );
         return successResponse({ data, message: 'Course results retrieved' });
     }
+
 
     // ═══════════════════════════════════════════════════════════════════════════
     // STUDENT ENDPOINTS
@@ -122,7 +120,7 @@ export class QuizController {
     }
 
     /** GET /quiz/:id/start — Student starts a quiz (answers are hidden!) */
-    @Auth([RoleEnum.student, RoleEnum.teacher, RoleEnum.admin])
+    @Auth([RoleEnum.student])
     @UseGuards(QuizAttemptGuard)
     @Get(':id/start')
     async startQuiz(
@@ -147,7 +145,7 @@ export class QuizController {
     }
 
     /** GET /quiz/attempt/:attemptId — Student views graded attempt (correct answers shown!) */
-    @Auth([RoleEnum.student, RoleEnum.teacher, RoleEnum.admin])
+    @Auth([RoleEnum.student])
     @Get('attempt/:attemptId')
     async getAttempt(
         @Param('attemptId') attemptId: string,
