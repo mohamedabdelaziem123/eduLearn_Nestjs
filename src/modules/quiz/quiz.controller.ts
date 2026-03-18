@@ -106,13 +106,24 @@ export class QuizController {
         return successResponse({ data, message: 'Course results retrieved' });
     }
 
+    /** GET /quiz/results/attempt/:attemptId — Teacher views full detail of a student's attempt */
+    @Auth([RoleEnum.teacher, RoleEnum.admin], tokenEnum.access)
+    @Get('results/attempt/:attemptId')
+    async getAttemptForTeacher(
+        @Param('attemptId') attemptId: string,
+        @User() { _id }: UserDocument,
+    ): Promise<IResponse<any>> {
+        const data = await this.quizService.getAttemptForTeacher(_id.toString(), attemptId);
+        return successResponse({ data, message: 'Attempt details retrieved' });
+    }
+
 
     // ═══════════════════════════════════════════════════════════════════════════
     // STUDENT ENDPOINTS
     // ═══════════════════════════════════════════════════════════════════════════
 
     /** GET /quiz/my-attempts — Student sees all their attempts grouped by course */
-    @Auth([RoleEnum.student])
+    @Auth([RoleEnum.student,RoleEnum.teacher])
     @Get('my-attempts')
     async getMyAttempts(@User() { _id }: UserDocument): Promise<IResponse<any>> {
         const data = await this.quizService.getMyAttempts(_id.toString());

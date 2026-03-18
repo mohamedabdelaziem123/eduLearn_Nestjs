@@ -136,6 +136,49 @@ export class QuizService {
     return this.quizResultRepo.findByCoursePaginated(courseId, options);
   }
 
+  /** Teacher: view full detail of a student's quiz attempt (questions + correct answers) */
+  async getAttemptForTeacher(teacherId: string, attemptId: string) {
+    const result = await this.quizResultRepo.findOne({ filter: { _id: attemptId } });
+    if (!result) throw new NotFoundException('Quiz attempt not found');
+
+    // Verify the teacher owns the course this attempt belongs to
+    await this.verifyOwnership(result.courseId.toString(), teacherId);
+
+    const quiz = (await this.quizRepo.findByIdWithQuestions(
+      result.quizId.toString(),
+    )) as any;
+    if (!quiz) throw new NotFoundException('Quiz not found');
+
+    const reviewData = result.answers.map((answer: any) => {
+      const question = quiz.questions.find(
+        (q: any) => q._id.toString() === answer.questionId.toString(),
+      );
+      const questionObj = question?.toObject ? question.toObject() : question;
+
+      return {
+        questionId: answer.questionId,
+        questionTitle: questionObj?.title ?? 'Deleted Question',
+        questionType: questionObj?.type,
+        options: questionObj?.options ?? [],
+        studentAnswer: answer.studentAnswer,
+        isCorrect: answer.isCorrect,
+      };
+    });
+
+    return {
+      _id: result._id,
+      quizId: result.quizId,
+      quizTitle: quiz.title,
+      studentId: result.studentId,
+      score: result.score,
+      totalQuestions: result.totalQuestions,
+      percentage: result.percentage,
+      isPassed: result.isPassed,
+      attemptNumber: result.attemptNumber,
+      review: reviewData,
+    };
+  }
+
 
   // ═══════════════════════════════════════════════════════════════════════════
   // STUDENT OPERATIONS
