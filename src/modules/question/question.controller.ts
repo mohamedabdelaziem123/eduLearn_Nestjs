@@ -18,6 +18,7 @@ import {
   tokenEnum,
   User,
 } from 'src/common';
+import { CreateQuestionResponse, QuestionResponse } from './entities/question.entity';
 
 @Controller('question')
 export class QuestionController {
@@ -29,7 +30,7 @@ export class QuestionController {
   async createQuestion(
     @Body() dto: CreateQuestionDto,
     @User() { _id }: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<CreateQuestionResponse>> {
     const data = await this.questionService.createQuestion(
       _id.toString(),
       dto,
@@ -44,7 +45,7 @@ export class QuestionController {
     @Param('lessonId') lessonId: string,
     @Query('courseId') courseId: string,
     @User() { _id }: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<QuestionResponse[]>> {
     const data = await this.questionService.getQuestionsByLesson(
       _id.toString(),
       lessonId,
@@ -59,7 +60,7 @@ export class QuestionController {
   async deleteQuestion(
     @Param('id') questionId: string,
     @User() { _id }: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse> {
     await this.questionService.deleteQuestion(_id.toString(), questionId);
     return successResponse({ message: 'Question deleted successfully' });
   }

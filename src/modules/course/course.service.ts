@@ -244,11 +244,11 @@ export class CourseService {
       );
     }
 
-    return this.courseRepository.findOneAndUpdate({
+    return (await this.courseRepository.findOneAndUpdate({
       filter: { _id: courseId },
       update: { status: CourseStatus.IN_PROGRESS },
       options: { new: true },
-    });
+    }))!;
   }
 
   /**
@@ -279,11 +279,11 @@ export class CourseService {
       );
     }
 
-    return this.courseRepository.findOneAndUpdate({
+    return (await this.courseRepository.findOneAndUpdate({
       filter: { _id: courseId },
       update: { status: CourseStatus.PUBLISHED },
       options: { new: true },
-    });
+    }))!;
   }
 
   /**
@@ -312,11 +312,11 @@ export class CourseService {
       );
     }
 
-    return this.courseRepository.findOneAndUpdate({
+    return (await this.courseRepository.findOneAndUpdate({
       filter: { _id: courseId },
       update: { status: CourseStatus.IN_PROGRESS },
       options: { new: true },
-    });
+    }))!;
   }
 
   /**
@@ -342,11 +342,11 @@ export class CourseService {
       throw new BadRequestException('This course is already archived.');
     }
 
-    return this.courseRepository.findOneAndUpdate({
+    return (await this.courseRepository.findOneAndUpdate({
       filter: { _id: courseId },
       update: { status: CourseStatus.ARCHIVED },
       options: { new: true },
-    });
+    }))!;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { CourseRepository, QuestionRepository } from 'src/DB';
+import { CreateQuestionResponse } from './entities/question.entity';
 
 @Injectable()
 export class QuestionService {
@@ -14,12 +15,12 @@ export class QuestionService {
   ) { }
 
   /** Create a new question (optionally linked to a lesson) */
-  async createQuestion(teacherId: string, dto: CreateQuestionDto) {
+  async createQuestion(teacherId: string, dto: CreateQuestionDto): Promise<CreateQuestionResponse> {
     if (dto.courseId) {
       await this.verifyOwnership(dto.courseId, teacherId);
     }
 
-    return this.questionRepo.createQuestion({
+    const question = await this.questionRepo.createQuestion({
       title: dto.title,
       type: dto.type,
       difficulty: dto.difficulty,
@@ -27,6 +28,13 @@ export class QuestionService {
       lessonId: dto.lessonId,
       courseId: dto.courseId,
     });
+
+    return {
+      questionId: question._id,
+      title: question.title,
+      type: question.type,
+      difficulty: question.difficulty,
+    };
   }
 
   /** Get all questions belonging to a specific lesson */

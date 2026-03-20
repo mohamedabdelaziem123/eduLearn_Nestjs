@@ -14,6 +14,15 @@ import {
 import { DifficultyLevel } from 'src/common';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
+import { CreateQuizResponse } from './entities/quiz.entity';
+import {
+  QuizResultPaginatedResponse,
+  QuizAttemptDetailResponse,
+  StartQuizResponse,
+  MyAttemptsGroupedResponse,
+  LessonPerformanceResponse,
+  CoursePerformanceResponse,
+} from './entities/quiz-result.entity';
 
 @Injectable()
 export class QuizService {
@@ -34,7 +43,7 @@ export class QuizService {
 
 
   /** Create a quiz — auto-picks equal number of questions from each difficulty level */
-  async createQuiz(teacherId: string, dto: CreateQuizDto) {
+  async createQuiz(teacherId: string, dto: CreateQuizDto): Promise<CreateQuizResponse> {
     await this.verifyOwnership(dto.courseId, teacherId);
 
     // Validate: minimumPassScore cannot exceed total questions
@@ -83,7 +92,12 @@ export class QuizService {
 
     await this.courseRepo.addQuizToCourse(dto.courseId, quiz._id.toString());
 
-    return quiz;
+    return {
+      quizId: quiz._id,
+      title: quiz.title,
+      courseId: quiz.courseId,
+      minimumPassScore: quiz.minimumPassScore,
+    };
   }
 
   /** Delete a quiz, its results, and remove from Course.quizzes */
@@ -108,7 +122,7 @@ export class QuizService {
 
     await this.verifyOwnership(quiz.courseId.toString(), teacherId);
 
-    return this.quizRepo.toggleHidden(quizId);
+    return (await this.quizRepo.toggleHidden(quizId))!;
   }
 
   /** Teacher: get paginated quiz results for a specific lesson */
@@ -116,7 +130,7 @@ export class QuizService {
     teacherId: string,
     lessonId: string,
     options: { page?: number; size?: number; search?: string } = {},
-  ) {
+  ): Promise<QuizResultPaginatedResponse> {
     const quiz = await this.quizRepo.findByLessonId(lessonId);
     if (!quiz) throw new NotFoundException('No quiz found for this lesson');
 
@@ -130,14 +144,14 @@ export class QuizService {
     teacherId: string,
     courseId: string,
     options: { page?: number; size?: number; search?: string } = {},
-  ) {
+  ): Promise<QuizResultPaginatedResponse> {
     await this.verifyOwnership(courseId, teacherId);
 
     return this.quizResultRepo.findByCoursePaginated(courseId, options);
   }
 
   /** Teacher: view full detail of a student's quiz attempt (questions + correct answers) */
-  async getAttemptForTeacher(teacherId: string, attemptId: string) {
+  async getAttemptForTeacher(teacherId: string, attemptId: string): Promise<QuizAttemptDetailResponse> {
     const result = await this.quizResultRepo.findOne({ filter: { _id: attemptId } });
     if (!result) throw new NotFoundException('Quiz attempt not found');
 
@@ -185,7 +199,7 @@ export class QuizService {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /** Student: get quiz for taking (strip isCorrect from options!) */
-  async startQuiz(studentId: string, quizId: string) {
+  async startQuiz(studentId: string, quizId: string): Promise<StartQuizResponse> {
     const quiz = (await this.quizRepo.findByIdWithQuestions(quizId)) as any;
 
     if (!quiz) throw new NotFoundException('Quiz not found');
@@ -301,7 +315,7 @@ export class QuizService {
   }
 
   /** Student: get all their quiz attempts grouped by course */
-  async getMyAttempts(studentId: string) {
+  async getMyAttempts(studentId: string): Promise<MyAttemptsGroupedResponse[]> {
     const results = (await this.quizResultRepo.findStudentAttemptsPopulated(
       studentId,
     )) as any[];
@@ -340,7 +354,7 @@ export class QuizService {
   }
 
   /** Student: view a graded attempt (with correct answers for review) */
-  async getAttempt(studentId: string, attemptId: string) {
+  async getAttempt(studentId: string, attemptId: string): Promise<QuizAttemptDetailResponse> {
     const result = await this.quizResultRepo.findStudentAttempt(
       studentId,
       attemptId,
@@ -382,7 +396,7 @@ export class QuizService {
   }
 
   /** Student: get their lesson quiz score compared to the average */
-  async getLessonPerformance(studentId: string, lessonId: string) {
+  async getLessonPerformance(studentId: string, lessonId: string): Promise<LessonPerformanceResponse> {
     const bestAttempt = await this.quizResultRepo.getStudentBestForLesson(
       studentId,
       lessonId,
@@ -395,7 +409,7 @@ export class QuizService {
   }
 
   /** Student: get their total course score compared to the average */
-  async getCoursePerformance(studentId: string, courseId: string) {
+  async getCoursePerformance(studentId: string, courseId: string): Promise<CoursePerformanceResponse> {
     const studentTotalCourseScore =
       await this.quizResultRepo.getStudentAverageForCourse(studentId, courseId);
     const courseAverageScore =

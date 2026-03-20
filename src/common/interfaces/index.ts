@@ -7,6 +7,6 @@ export * from './lesson.interface';
 export * from './question.interface';
 export * from './quiz.interface';
 export * from './quiz-result.interface';
-export * from './otp.interface';
 export * from './order.interface';
 export * from './cart.interface';
+export * from './course.interface';

@@ -9,6 +9,7 @@ import { CartService } from './cart.service';
 import { AddToCartDto, RemoveFromCartDto } from './dto/create-cart.dto';
 import { Auth, IResponse, RoleEnum, successResponse, User } from 'src/common';
 import { type UserDocument } from 'src/DB';
+import { CartResponse } from './entities/cart.entity';
 
 @Controller('cart')
 export class CartController {
@@ -16,9 +17,9 @@ export class CartController {
 
   @Auth([RoleEnum.student])
   @Get('/')
-  async getCart(@User() user: UserDocument): Promise<IResponse<any>> {
+  async getCart(@User() user: UserDocument): Promise<IResponse<CartResponse>> {
     const cart = await this.cartService.getCart(user._id);
-    return successResponse({ data: { cart } });
+    return successResponse({ data: cart });
   }
 
   @Auth([RoleEnum.student])
@@ -26,9 +27,9 @@ export class CartController {
   async addToCart(
     @Body() dto: AddToCartDto,
     @User() user: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<CartResponse>> {
     const cart = await this.cartService.addLesson(user._id, dto.lessonId);
-    return successResponse({ data: { cart }, message: 'Lesson added to cart' });
+    return successResponse({ data: cart, message: 'Lesson added to cart' });
   }
 
   @Auth([RoleEnum.student])
@@ -36,9 +37,9 @@ export class CartController {
   async removeFromCart(
     @Body() dto: RemoveFromCartDto,
     @User() user: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<CartResponse>> {
     const cart = await this.cartService.removeLesson(user._id, dto.lessonId);
-    return successResponse({ data: { cart }, message: 'Lesson removed from cart' });
+    return successResponse({ data: cart, message: 'Lesson removed from cart' });
   }
 
   @Auth([RoleEnum.student])

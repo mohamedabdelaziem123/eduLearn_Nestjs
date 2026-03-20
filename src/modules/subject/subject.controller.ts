@@ -14,6 +14,9 @@ import {
     SubjectParamsDto,
 } from './dto/subject.dto';
 import { Auth, IResponse, RoleEnum, successResponse, User } from 'src/common';
+import { CreateSubjectResponse, SubjectResponse } from './entities/subject.entity';
+import { CourseResponse } from '../course/entities/course.entity';
+import { TeacherResponse } from '../teacher/entities/teacher.entity';
 
 
 @Controller('subject')
@@ -22,7 +25,7 @@ export class SubjectController {
 
     @Auth([RoleEnum.admin])
     @Post('/')
-    async create(@Body() body: CreateSubjectDto): Promise<IResponse<any>> {
+    async create(@Body() body: CreateSubjectDto): Promise<IResponse<CreateSubjectResponse>> {
         const subject = await this.subjectService.create(body);
         return successResponse({
             data: { subjectId: subject._id, name: subject.name },
@@ -31,9 +34,9 @@ export class SubjectController {
     }
 
     @Get('/')
-    async findAll(): Promise<IResponse<any>> {
+    async findAll(): Promise<IResponse<SubjectResponse[]>> {
         const subjects = await this.subjectService.findAll();
-        return successResponse({ data: { subjects } });
+        return successResponse({ data: subjects });
     }
 
     @Auth([RoleEnum.admin , RoleEnum.student , RoleEnum.teacher])
@@ -41,23 +44,23 @@ export class SubjectController {
     async getCoursesBySubject(
         @Param() { id:subjectId }: SubjectParamsDto,
         @User()  user : any,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<CourseResponse[]>> {
         const courses = await this.subjectService.getCoursesBySubject(subjectId ,user.role);
-        return successResponse({ data: { courses } });
+        return successResponse({ data: courses });
     }
 
     @Get('/:id/teachers')
     async getTeachersBySubject(
         @Param() { id }: SubjectParamsDto,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<TeacherResponse[]>> {
         const teachers = await this.subjectService.getTeachersBySubject(id);
-        return successResponse({ data: { teachers }, message: 'Teachers retrieved' });
+        return successResponse({ data: teachers, message: 'Teachers retrieved' });
     }
 
     @Get('/:id')
-    async findById(@Param() { id }: SubjectParamsDto): Promise<IResponse<any>> {
+    async findById(@Param() { id }: SubjectParamsDto): Promise<IResponse<SubjectResponse>> {
         const subject = await this.subjectService.findById(id);
-        return successResponse({ data: { subject } });
+        return successResponse({ data: subject });
     }
 
     @Auth([RoleEnum.admin])
@@ -65,10 +68,10 @@ export class SubjectController {
     async update(
         @Param() { id }: SubjectParamsDto,
         @Body() body: UpdateSubjectDto,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<SubjectResponse>> {
         const subject = await this.subjectService.update(id, body);
         return successResponse({
-            data: { subject },
+            data: subject,
             message: 'Subject updated successfully',
         });
     }

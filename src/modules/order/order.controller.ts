@@ -10,6 +10,7 @@ import { OrderService } from './order.service';
 import { CreateOrderParamsDto } from './dto/create-order.dto';
 import { Auth, IResponse, RoleEnum, successResponse, User } from 'src/common';
 import { type UserDocument } from 'src/DB';
+import { CheckoutSessionResponse, CreateOrderResponse, OrderResponse } from './entities/order.entity';
 
 @Controller('order')
 export class OrderController {
@@ -18,9 +19,9 @@ export class OrderController {
   /** Create an order from the student's cart */
   @Auth([RoleEnum.student])
   @Post('/')
-  async create(@User() user: UserDocument): Promise<IResponse<any>> {
+  async create(@User() user: UserDocument): Promise<IResponse<CreateOrderResponse>> {
     const order = await this.orderService.createOrder(user);
-    return successResponse({ data: { order }, message: 'Order created from cart' });
+    return successResponse({ data: order, message: 'Order created from cart' });
   }
 
   /** Paymob webhook — no auth (called by Paymob servers) */
@@ -38,10 +39,10 @@ export class OrderController {
   async checkOut(
     @Param() { orderId }: CreateOrderParamsDto,
     @User() user: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<CheckoutSessionResponse>> {
     const paymentUrl = await this.orderService.checkOut(orderId, user);
     return successResponse({
-      data: { paymentUrl },
+      data: { sessionURL: paymentUrl },
       message: 'Payment link generated',
     });
   }
@@ -52,8 +53,8 @@ export class OrderController {
   async cancel(
     @Param() { orderId }: CreateOrderParamsDto,
     @User() user: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<OrderResponse>> {
     const order = await this.orderService.cancel(orderId, user);
-    return successResponse({ data: { order }, message: 'Order cancelled' });
+    return successResponse({ data: order, message: 'Order cancelled' });
   }
 }

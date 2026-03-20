@@ -24,6 +24,16 @@ import {
 } from 'src/common';
 import { type UserDocument } from 'src/DB';
 import { QuizAttemptGuard } from 'src/common';
+import { CreateQuizResponse, QuizResponse } from './entities/quiz.entity';
+import {
+    QuizResultPaginatedResponse,
+    QuizAttemptDetailResponse,
+    MyAttemptsGroupedResponse,
+    StartQuizResponse,
+    QuizResultResponse,
+    LessonPerformanceResponse,
+    CoursePerformanceResponse,
+} from './entities/quiz-result.entity';
 
 @Controller('quiz')
 export class QuizController {
@@ -41,7 +51,7 @@ export class QuizController {
     async createQuiz(
         @Body() dto: CreateQuizDto,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<CreateQuizResponse>> {
         const data = await this.quizService.createQuiz(_id.toString(), dto);
         return successResponse({ data, message: 'Quiz created successfully' });
     }
@@ -52,7 +62,7 @@ export class QuizController {
     async deleteQuiz(
         @Param('id') quizId: string,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse> {
         await this.quizService.deleteQuiz(_id.toString(), quizId);
         return successResponse({ message: 'Quiz deleted successfully' });
     }
@@ -63,7 +73,7 @@ export class QuizController {
     async toggleVisibility(
         @Param('id') quizId: string,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<QuizResponse>> {
         const data = await this.quizService.toggleQuizVisibility(
             _id.toString(),
             quizId,
@@ -81,7 +91,7 @@ export class QuizController {
         @Param('lessonId') lessonId: string,
         @Query() query: GetAllDto,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<QuizResultPaginatedResponse>> {
         const data = await this.quizService.getResultsByLesson(
             _id.toString(),
             lessonId,
@@ -97,7 +107,7 @@ export class QuizController {
         @Param('courseId') courseId: string,
         @Query() query: GetAllDto,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<QuizResultPaginatedResponse>> {
         const data = await this.quizService.getResultsByCourse(
             _id.toString(),
             courseId,
@@ -112,7 +122,7 @@ export class QuizController {
     async getAttemptForTeacher(
         @Param('attemptId') attemptId: string,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<QuizAttemptDetailResponse>> {
         const data = await this.quizService.getAttemptForTeacher(_id.toString(), attemptId);
         return successResponse({ data, message: 'Attempt details retrieved' });
     }
@@ -125,7 +135,7 @@ export class QuizController {
     /** GET /quiz/my-attempts — Student sees all their attempts grouped by course */
     @Auth([RoleEnum.student,RoleEnum.teacher])
     @Get('my-attempts')
-    async getMyAttempts(@User() { _id }: UserDocument): Promise<IResponse<any>> {
+    async getMyAttempts(@User() { _id }: UserDocument): Promise<IResponse<MyAttemptsGroupedResponse[]>> {
         const data = await this.quizService.getMyAttempts(_id.toString());
         return successResponse({ data, message: 'Attempts retrieved' });
     }
@@ -137,7 +147,7 @@ export class QuizController {
     async startQuiz(
         @Param('id') quizId: string,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<StartQuizResponse>> {
         const data = await this.quizService.startQuiz(_id.toString(), quizId);
         return successResponse({ data, message: 'Quiz loaded' });
     }
@@ -150,7 +160,7 @@ export class QuizController {
         @Param('id') quizId: string,
         @Body() dto: SubmitQuizDto,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<QuizResultResponse>> {
         const data = await this.quizService.submitQuiz(_id.toString(), quizId, dto);
         return successResponse({ data, message: 'Quiz submitted and graded' });
     }
@@ -161,7 +171,7 @@ export class QuizController {
     async getAttempt(
         @Param('attemptId') attemptId: string,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<QuizAttemptDetailResponse>> {
         const data = await this.quizService.getAttempt(_id.toString(), attemptId);
         return successResponse({ data, message: 'Quiz attempt retrieved' });
     }
@@ -172,7 +182,7 @@ export class QuizController {
     async getLessonPerformance(
         @Param('lessonId') lessonId: string,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<LessonPerformanceResponse>> {
         const data = await this.quizService.getLessonPerformance(
             _id.toString(),
             lessonId,
@@ -186,7 +196,7 @@ export class QuizController {
     async getCoursePerformance(
         @Param('courseId') courseId: string,
         @User() { _id }: UserDocument,
-    ): Promise<IResponse<any>> {
+    ): Promise<IResponse<CoursePerformanceResponse>> {
         const data = await this.quizService.getCoursePerformance(
             _id.toString(),
             courseId,

@@ -5,8 +5,10 @@ import {
   GetUsersQueryDto,
   GetOrdersQueryDto,
 } from './dto/create-admin.dto';
-import { Auth, IResponse, RoleEnum, successResponse, tokenEnum } from 'src/common';
-import { createTeacherResponse } from './entities/admin.entity';
+import { Auth, GetAllResponse, IResponse, RoleEnum, successResponse, tokenEnum } from 'src/common';
+import { createTeacherResponse, DashboardStatsResponse } from './entities/admin.entity';
+import { UserResponse } from '../user/entities/user.entity';
+import { OrderResponse } from '../order/entities/order.entity';
 
 @Controller('admin')
 @Auth([RoleEnum.admin], tokenEnum.access)
@@ -61,7 +63,7 @@ export class AdminController {
   @Get('students')
   async getAllStudents(
     @Query() query: GetUsersQueryDto,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<GetAllResponse<UserResponse>>> {
     const data = await this.adminService.getAllUsers({ ...query, role: RoleEnum.student });
     return successResponse({ data, message: 'Students retrieved successfully' });
   }
@@ -70,16 +72,17 @@ export class AdminController {
   @Get('users')
   async getAllUsers(
     @Query() query: GetUsersQueryDto,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<GetAllResponse<UserResponse>>> {
     const data = await this.adminService.getAllUsers(query);
     return successResponse({ data, message: 'Users retrieved successfully' });
   }
 
   /** GET /admin/users/:userId — detailed user profile */
+  @Auth([RoleEnum.admin , RoleEnum.teacher], tokenEnum.access)
   @Get('users/:userId')
   async getUserDetails(
     @Param('userId') userId: string,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<UserResponse>> {
     const data = await this.adminService.getUserDetails(userId);
     return successResponse({ data, message: 'User details retrieved' });
   }
@@ -92,7 +95,7 @@ export class AdminController {
   @Get('orders')
   async getAllOrders(
     @Query() query: GetOrdersQueryDto,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<GetAllResponse<OrderResponse>>> {
     const data = await this.adminService.getAllOrders(query);
     return successResponse({ data, message: 'Orders retrieved successfully' });
   }
@@ -101,7 +104,7 @@ export class AdminController {
   @Get('orders/:orderId')
   async getOrderById(
     @Param('orderId') orderId: string,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<OrderResponse>> {
     const data = await this.adminService.getOrderById(orderId);
     return successResponse({ data, message: 'Order details retrieved' });
   }
@@ -112,7 +115,7 @@ export class AdminController {
 
   /** GET /admin/dashboard-stats — aggregated platform metrics */
   @Get('dashboard-stats')
-  async getDashboardStats(): Promise<IResponse<any>> {
+  async getDashboardStats(): Promise<IResponse<DashboardStatsResponse>> {
     const data = await this.adminService.getDashboardStats();
     return successResponse({ data, message: 'Dashboard stats retrieved' });
   }

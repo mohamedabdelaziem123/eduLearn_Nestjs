@@ -125,7 +125,7 @@ export class CourseController {
   @Patch(':id/start-progress')
   async startProgress(
     @Param('id') id: string,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<CourseResponse>> {
     const data = await this.courseService.startProgress(id);
     return successResponse({
       data,
@@ -139,7 +139,7 @@ export class CourseController {
   async publishCourse(
     @Param('id') id: string,
     @User() user: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<CourseResponse>> {
     const data = await this.courseService.publishCourse(
       id,
       String(user._id),
@@ -157,7 +157,7 @@ export class CourseController {
   async unpublishCourse(
     @Param('id') id: string,
     @User() user: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<CourseResponse>> {
     const data = await this.courseService.unpublishCourse(
       id,
       String(user._id),
@@ -178,7 +178,7 @@ export class CourseController {
   async archiveCourse(
     @Param('id') id: string,
     @User() user: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<CourseResponse>> {
     const data = await this.courseService.archiveCourse(
       id,
       String(user._id),
@@ -192,7 +192,7 @@ export class CourseController {
   @Delete(':id')
   async deleteCourse(
     @Param('id') id: string,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse> {
     await this.courseService.deleteCourse(id);
     return successResponse({ message: 'Course and all its lessons deleted successfully.' });
   }

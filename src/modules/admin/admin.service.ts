@@ -13,7 +13,7 @@ import {
   GetOrdersQueryDto,
 } from './dto/create-admin.dto';
 import { providerEnum, RoleEnum, orderStatusEnum } from 'src/common';
-import { createTeacherResponse } from './entities/admin.entity';
+import { createTeacherResponse, DashboardStatsResponse } from './entities/admin.entity';
 
 @Injectable()
 export class AdminService {
@@ -223,7 +223,7 @@ export class AdminService {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /** Aggregated platform metrics for the admin dashboard */
-  async getDashboardStats() {
+  async getDashboardStats(): Promise<DashboardStatsResponse> {
     // 1. Total revenue from paid orders
     const revenueResult = await this.orderRepository.aggregate([
       { $match: { status: orderStatusEnum.PAID } },

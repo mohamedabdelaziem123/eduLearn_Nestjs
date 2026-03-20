@@ -9,6 +9,7 @@ import { CdnService, S3Service } from 'src/common';
 import { CreateLessonDto, GetUploadUrlDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { LessonDocument, UserDocument } from 'src/DB';
+import { CreateLessonResponse, LessonResponse } from './entities/lesson.entity';
 
 @Injectable()
 export class LessonService {
@@ -42,7 +43,7 @@ export class LessonService {
     courseId: string,
     teacherId: string,
     data: CreateLessonDto,
-  ): Promise<LessonDocument> {
+  ): Promise<CreateLessonResponse> {
     await this.verifyOwnership(courseId, teacherId);
 
     const region = process.env.AWS_REGION;
@@ -67,7 +68,12 @@ export class LessonService {
         newLesson._id.toString(),
       );
 
-      return newLesson;
+      return {
+        lessonId: newLesson._id,
+        title: newLesson.title,
+        courseId: newLesson.courseId,
+        order: newLesson.order,
+      };
     } catch (error) {
       // Rollback: delete the orphaned S3 video
       await this.s3Service.deleteFile({ Key: data.videoKey }).catch(() => { });
@@ -131,7 +137,7 @@ export class LessonService {
     lessonId: string,
     teacherId: string,
     data: UpdateLessonDto,
-  ): Promise<LessonDocument | null> {
+  ): Promise<LessonDocument> {
     // 1. Check existence
     const lesson = await this.lessonRepository.findOne({
       filter: { _id: lessonId },
@@ -176,7 +182,7 @@ export class LessonService {
           .catch((err) => console.error('Failed to clean up old video:', err));
       }
 
-      return updatedLesson;
+      return updatedLesson!;
     } catch (error) {
       // --- FAILURE PATH (Rollback) ---
 
@@ -221,7 +227,7 @@ export class LessonService {
   async toggleVisibility(
     lessonId: string,
     teacherId: string,
-  ): Promise<LessonDocument | null> {
+  ): Promise<LessonDocument> {
     const lesson = await this.lessonRepository.findOne({
       filter: { _id: lessonId },
     });
@@ -229,7 +235,7 @@ export class LessonService {
 
     await this.verifyOwnership(lesson.courseId.toString(), teacherId);
 
-    return this.lessonRepository.toggleHidden(lessonId);
+    return (await this.lessonRepository.toggleHidden(lessonId))!;
   }
 
   // ─── Private helper ───────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ import { TeacherService } from './teacher.service';
 import {
   Auth,
   GetAllDto,
+  GetAllResponse,
   IResponse,
   RoleEnum,
   successResponse,
@@ -11,6 +12,8 @@ import {
 } from 'src/common';
 import { type UserDocument } from 'src/DB';
 import { CourseIdParamDto } from 'src/common/dtos/courseParam.dto';
+import { TeacherResponse } from './entities/teacher.entity';
+import { CourseResponse } from '../course/entities/course.entity';
 
 @Controller('teacher')
 export class TeacherController {
@@ -20,7 +23,7 @@ export class TeacherController {
 
   /** GET /teacher — list all teachers (public, no auth required) */
   @Get()
-  async getAllTeachers(): Promise<IResponse<any>> {
+  async getAllTeachers(): Promise<IResponse<TeacherResponse[]>> {
     const data = await this.teacherService.getAllTeachers();
     return successResponse({ data, message: 'Teachers retrieved successfully' });
   }
@@ -33,7 +36,7 @@ export class TeacherController {
   async getMyCourses(
     @User() user: UserDocument,
     @Query() query: GetAllDto,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<GetAllResponse<CourseResponse>>> {
     const data = await this.teacherService.getMyAssignedCourses(user, query);
     return successResponse({
       data,
@@ -47,7 +50,7 @@ export class TeacherController {
   async getMyCourseById(
     @User() user: UserDocument,
     @Param() params: CourseIdParamDto,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<CourseResponse>> {
     const data = await this.teacherService.getAssignedCourseById(
       user._id.toString(),
       params.courseId,

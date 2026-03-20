@@ -24,6 +24,7 @@ import {
 import type { UserDocument } from 'src/DB';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateProfileDto } from './dto/update-user.dto';
+import { UserResponse } from './entities/user.entity';
 
 @Controller('user')
 @Auth([RoleEnum.student, RoleEnum.teacher, RoleEnum.admin], tokenEnum.access)
@@ -33,7 +34,7 @@ export class UserController {
   // ─── GET PROFILE ─────────────────────────────────────────────────────────
 
   @Get('profile')
-  async getProfile(@User() user: UserDocument): Promise<IResponse<any>> {
+  async getProfile(@User() user: UserDocument): Promise<IResponse<UserResponse>> {
     const data = await this.userService.profile(user);
     return successResponse({ data, message: 'Profile retrieved' });
   }
@@ -44,7 +45,7 @@ export class UserController {
   async updateProfile(
     @User() user: UserDocument,
     @Body() body: UpdateProfileDto,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<UserResponse>> {
     const data = await this.userService.updateProfile(user, body);
     return successResponse({ data, message: 'Profile updated successfully' });
   }
@@ -67,7 +68,7 @@ export class UserController {
       }),
     )
     file: Express.Multer.File,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<UserResponse>> {
     const data = await this.userService.updateProfileImage(user, file);
     return successResponse({ data, message: 'Profile image updated' });
   }
@@ -77,7 +78,7 @@ export class UserController {
   @Delete('profile/image')
   async removeProfileImage(
     @User() user: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<UserResponse>> {
     const data = await this.userService.removeProfileImage(user);
     return successResponse({ data, message: 'Profile image removed' });
   }

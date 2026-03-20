@@ -22,6 +22,7 @@ import { CourseIdParamDto } from 'src/common/dtos/courseParam.dto';
 import { type UserDocument } from 'src/DB';
 import { CreateLessonDto, GetUploadUrlDto } from './dto/create-lesson.dto';
 import { LessonAccessGuard } from 'src/common';
+import { CreateLessonResponse, LessonResponse } from './entities/lesson.entity';
 
 @Controller()
 export class LessonController {
@@ -35,7 +36,7 @@ export class LessonController {
   async getLessonsByCourse(
     @Param() { courseId }: CourseIdParamDto,
     @User() user: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<LessonResponse[]>> {
     const data = await this.lessonService.getLessonsByCourse(
       courseId,
       user.role,
@@ -49,7 +50,7 @@ export class LessonController {
   @Get('lessons/:lessonId')
   async getLessonById(
     @Param('lessonId') lessonId: string,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<LessonResponse>> {
     const data = await this.lessonService.getLessonById(lessonId);
     return successResponse({ data, message: 'Lesson retrieved successfully' });
   }
@@ -91,7 +92,7 @@ export class LessonController {
     @Param() { courseId }: CourseIdParamDto,
     @Body() body: CreateLessonDto,
     @User() { _id }: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<CreateLessonResponse>> {
     const data = await this.lessonService.createLesson(
       courseId,
       _id.toString(),
@@ -107,7 +108,7 @@ export class LessonController {
     @Param('lessonId') lessonId: string,
     @Body() body: UpdateLessonDto,
     @User() { _id }: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<LessonResponse>> {
     const data = await this.lessonService.updateLesson(
       lessonId,
       _id.toString(),
@@ -122,7 +123,7 @@ export class LessonController {
   async deleteLesson(
     @Param('lessonId') lessonId: string,
     @User() { _id }: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse> {
     await this.lessonService.deleteLesson(lessonId, _id.toString());
     return successResponse({ message: 'Lesson deleted successfully' });
   }
@@ -133,7 +134,7 @@ export class LessonController {
   async toggleVisibility(
     @Param('lessonId') lessonId: string,
     @User() { _id }: UserDocument,
-  ): Promise<IResponse<any>> {
+  ): Promise<IResponse<LessonResponse>> {
     const data = await this.lessonService.toggleVisibility(
       lessonId,
       _id.toString(),
