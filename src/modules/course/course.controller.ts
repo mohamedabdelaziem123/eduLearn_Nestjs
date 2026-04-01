@@ -25,7 +25,7 @@ import {
   User,
   validFilesFormat,
 } from 'src/common';
-import { CourseResponse, CreateCourseResponse } from './entities/course.entity';
+import { CourseResponse, CreateCourseResponse, StudentCourseResponse } from './entities/course.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CourseIdParamDto } from 'src/common/dtos/courseParam.dto';
@@ -79,6 +79,21 @@ export class CourseController {
       data,
       message: 'Courses retrieved successfully',
     });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // GET MY COURSES (student — courses with purchased lessons)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @Auth([RoleEnum.student], tokenEnum.access)
+  @Get('my-courses')
+  async getMyCourses(
+    @User() user: UserDocument,
+  ): Promise<IResponse<StudentCourseResponse[]>> {
+    const data = await this.courseService.getCoursesByStudent(
+      (user as any).boughtLessons ?? [],
+    );
+    return successResponse({ data, message: 'Purchased courses retrieved successfully' });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

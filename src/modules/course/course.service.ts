@@ -9,7 +9,7 @@ import { CourseRepository } from 'src/DB/repository/course.repository';
 import { LessonRepository } from 'src/DB/repository/lesson.repository';
 import { CreateBlankCourseDto } from './dto/create-course.dto';
 import { CreateCourseResponse } from './entities/course.entity';
-import { CdnService, CourseStatus, GetAllDto, RoleEnum, S3Service } from 'src/common';
+import { CdnService, CourseStatus, EntityId, GetAllDto, RoleEnum, S3Service } from 'src/common';
 import { UpdateCourseDto } from './dto/update-course.dto';
 
 @Injectable()
@@ -399,6 +399,42 @@ export class CourseService {
     // 6. Delete the course document
     await this.courseRepository.deleteOne({
       filter: { _id: courseId },
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // GET COURSES BY STUDENT (courses the student bought lessons from)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  async getCoursesByStudent(boughtLessonIds: EntityId[]) {
+    if (!boughtLessonIds || boughtLessonIds.length === 0) {
+      return [];
+    }
+
+    // 1. Find distinct course IDs from the student's purchased lessons
+    const courseIds = await this.lessonRepository.findDistinctCourseIds(boughtLessonIds);
+
+    if (courseIds.length === 0) {
+      return [];
+    }
+
+    // 2. Fetch courses with teacher and subject populated
+    const courses = await this.courseRepository.find({
+      filter: { _id: { $in: courseIds } },
+      options: {
+        sort: { createdAt: -1 },
+        populate: [
+          { path: 'teacherId', select: 'firstName lastName email' },
+          { path: 'subjectId', select: 'name' },
+        ],
+      },
+    });
+
+    // 3. Transform image keys to CloudFront signed URLs
+    return courses.map((course: any) => {
+      const obj = course.toJSON ? course.toJSON() : course;
+      if (obj.image) obj.image = this.cdnService.getSignedUrl(obj.image);
+      return obj;
     });
   }
 }

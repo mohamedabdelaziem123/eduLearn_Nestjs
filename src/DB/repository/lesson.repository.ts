@@ -76,4 +76,13 @@ export class LessonRepository extends DatabaseRepository<
   async deleteByCourse(courseId: EntityId): Promise<void> {
     await this.model.deleteMany({ courseId: toObjectId(courseId) });
   }
+
+  /** Get distinct courseIds from a list of lesson IDs */
+  async findDistinctCourseIds(lessonIds: EntityId[]): Promise<string[]> {
+    const objectIds = lessonIds.map(toObjectId);
+    const courseIds = await this.model.distinct('courseId', {
+      _id: { $in: objectIds },
+    });
+    return courseIds.map(String);
+  }
 }
