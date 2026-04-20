@@ -14,9 +14,9 @@ import {
     SubjectParamsDto,
 } from './dto/subject.dto';
 import { Auth, IResponse, RoleEnum, successResponse, User } from 'src/common';
-import { CreateSubjectResponse, SubjectResponse } from './entities/subject.entity';
-import { CourseResponse } from '../course/entities/course.entity';
-import { TeacherResponse } from '../teacher/entities/teacher.entity';
+import { CreateSubjectResponse, SubjectResponse } from './dto/subject.response.dto';
+import { CourseResponse } from '../course/dto/course.response.dto';
+import { TeacherResponse } from '../teacher/dto/teacher.response.dto';
 
 
 @Controller('subject')

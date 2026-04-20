@@ -6,7 +6,8 @@ import {
 } from '../model/course.model';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { EntityId, toObjectId } from 'src/common';
+import { EntityId } from 'src/common';
+import { toObjectId } from '../mongoose';
 
 @Injectable()
 export class CourseRepository extends DatabaseRepository<

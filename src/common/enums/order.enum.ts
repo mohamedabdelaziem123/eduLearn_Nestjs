@@ -3,5 +3,4 @@ export enum orderStatusEnum {
     PAID = 'PAID',
     FAILED = 'FAILED',
     CANCELLED = 'CANCELLED',
-    REFUNDED = 'REFUNDED',
 }

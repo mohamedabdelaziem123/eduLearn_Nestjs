@@ -10,7 +10,7 @@ import { randomUUID } from 'crypto';
 import { RoleEnum, tokenEnum } from '../enums';
 import { DecodeOptions, JwtPayload } from 'jsonwebtoken';
 import { TokenDocument } from 'src/DB/model/token.model';
-import { Logincredentials } from '../entities/token.entity';
+import { LoginCredentials } from '../dtos/login-credentials.response.dto';
 
 import { UserRepository } from 'src/DB/repository/user.repository';
 import { RedisService } from './redis.service';
@@ -190,7 +190,7 @@ export class TokenService {
 
   async generateLoginCredentials(
     user: User & { _id: string },
-  ): Promise<Logincredentials> {
+  ): Promise<LoginCredentials> {
     const { access_signature, refresh_signature } = this.getSignatures(
       user.role,
     );

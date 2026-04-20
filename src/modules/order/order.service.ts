@@ -50,14 +50,16 @@ export class OrderService {
           ? (lesson.courseId as any).title
           : 'Unknown Course';
 
+      const lessonPrice = Number(lesson.price) || 0;
+
       orderItems.push({
         lessonId: String(lesson._id),
         courseTitle,
         lessonTitle: lesson.title,
         lessonOrder: lesson.order,
-        price: lesson.price,
+        price: lessonPrice,
       });
-      totalAmount += lesson.price;
+      totalAmount += lessonPrice;
     }
 
     if (totalAmount <= 0) {

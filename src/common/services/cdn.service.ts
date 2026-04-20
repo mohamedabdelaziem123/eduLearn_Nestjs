@@ -26,11 +26,22 @@ export class CdnService {
 
     /** Generate a time-limited CloudFront signed URL for a given S3 object key */
     getSignedUrl(fileKey: string): string {
+        if (!fileKey) return '';
+
+        // Return external URLs (like Google OAuth avatar) directly without signing
+        if (fileKey.startsWith('http://') || fileKey.startsWith('https://')) {
+            return fileKey;
+        }
+
         try {
             const expiresAt = new Date(Date.now() + this.expiresInMs).toISOString();
 
+            // Encode the file path segments to match browser URL encoding behavior
+            // This prevents Signature Mismatch (403 Forbidden) when filenames contain spaces or special characters
+            const encodedFileKey = fileKey.split('/').map(encodeURIComponent).join('/');
+
             return getSignedUrl({
-                url: `${this.domain}/${fileKey}`,
+                url: `${this.domain}/${encodedFileKey}`,
                 keyPairId: this.keyPairId,
                 privateKey: this.privateKey,
                 dateLessThan: expiresAt,

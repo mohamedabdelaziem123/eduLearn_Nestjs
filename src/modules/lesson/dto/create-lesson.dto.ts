@@ -22,7 +22,7 @@ export class CreateLessonDto {
   @IsString() @IsOptional() description?: string;
   @IsNumber() @IsNotEmpty() price: number;
   @IsBoolean() @IsOptional() isFree?: boolean;
-  @IsInt() @IsNotEmpty() order: number;
+  @IsInt() @IsNotEmpty()  order: number;
 
   @IsString()
   @IsNotEmpty()

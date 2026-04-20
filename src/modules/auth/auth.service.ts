@@ -18,10 +18,10 @@ import {
 } from './dto/auth.dto';
 import { compareHash, generateHash, IResponse, RedisService } from 'src/common';
 import { UserDocument } from 'src/DB/model';
-import { logoutEnum, otpEnum, providerEnum } from 'src/common/enums';
+import { logoutEnum, otpEnum, providerEnum, RoleEnum } from 'src/common/enums';
 import { UserRepository } from 'src/DB';
 import { LoginBodyDto } from './dto/auth.dto';
-import { LoginResponse } from './entities/auth.entity';
+import { LoginResponse } from './dto/auth.response.dto';
 import { TokenService } from 'src/common/services/token.service';
 import { OAuth2Client, TokenPayload } from 'google-auth-library';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -180,7 +180,11 @@ export class AuthService {
 
     if (user) {
       if (user.provider == providerEnum.google) {
-        return await this.loginWithGmail(body);
+        if (user.isBlocked) {
+          throw new ForbiddenException('Your account has been blocked');
+        }
+        const credentials = await this.tokenService.generateLoginCredentials(user as any);
+        return { message: 'done login successfully', data: { credentials } };
       }
       throw new ConflictException('sorry email already exist');
     }
@@ -188,11 +192,13 @@ export class AuthService {
     const newUser = await this.UserRepository.createUser({
       data: [
         {
-          firstName: given_name as string,
+          firstName: (given_name || email?.split('@')[0] || 'User').substring(0, 25),
+          lastName: (family_name || '').substring(0, 25),
           email: email as string,
-          lastName: family_name as string,
           provider: providerEnum.google,
           profileImage: picture as string,
+          role: RoleEnum.student,
+          confirmedAt: new Date(),
         },
       ],
     });

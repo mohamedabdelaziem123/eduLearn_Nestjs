@@ -81,7 +81,7 @@ export class SubjectService {
     }
 
     /** Get a subject by ID with populated courses */
-    async findById(subjectId: EntityId): Promise<SubjectDocument> {
+    async findById(subjectId: EntityId): Promise<any> {
         const subject = await this.subjectRepository.findOne({
             filter: { _id: subjectId },
             options: {
@@ -92,7 +92,18 @@ export class SubjectService {
         if (!subject) {
             throw new NotFoundException('Subject not found');
         }
-        return subject;
+
+        // Sign course image keys to CloudFront URLs
+        const subjectObj = subject.toJSON ? subject.toJSON() : subject;
+        if (Array.isArray(subjectObj.courses)) {
+            subjectObj.courses = subjectObj.courses.map((course: any) => {
+                if (course.image) {
+                    course.image = this.cdnService.getSignedUrl(course.image);
+                }
+                return course;
+            });
+        }
+        return subjectObj;
     }
 
     /** Get all courses belonging to a subject */
@@ -107,7 +118,16 @@ export class SubjectService {
             throw new NotFoundException('Subject not found');
         }
 
-        return await this.courseRepository.findCoursesBySubject(subjectId, String(userRole));
+        const courses = await this.courseRepository.findCoursesBySubject(subjectId, String(userRole));
+
+        // Sign course image keys to CloudFront URLs
+        return courses.map((course: any) => {
+            const obj = course.toJSON ? course.toJSON() : course;
+            if (obj.image) {
+                obj.image = this.cdnService.getSignedUrl(obj.image);
+            }
+            return obj;
+        });
     }
 
     /** Get all teachers who teach courses in a specific subject */

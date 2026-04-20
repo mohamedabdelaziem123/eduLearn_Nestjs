@@ -8,7 +8,7 @@ import { UserRepository } from 'src/DB/repository/user.repository';
 import { CourseRepository } from 'src/DB/repository/course.repository';
 import { LessonRepository } from 'src/DB/repository/lesson.repository';
 import { CreateBlankCourseDto } from './dto/create-course.dto';
-import { CreateCourseResponse } from './entities/course.entity';
+import { CreateCourseResponse } from './dto/course.response.dto';
 import { CdnService, CourseStatus, EntityId, GetAllDto, RoleEnum, S3Service } from 'src/common';
 import { UpdateCourseDto } from './dto/update-course.dto';
 
@@ -220,7 +220,7 @@ export class CourseService {
       }
     }
 
-    return updatedCourse;
+    return this.signCourseImage(updatedCourse);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -244,11 +244,12 @@ export class CourseService {
       );
     }
 
-    return (await this.courseRepository.findOneAndUpdate({
+    const updated = (await this.courseRepository.findOneAndUpdate({
       filter: { _id: courseId },
       update: { status: CourseStatus.IN_PROGRESS },
       options: { new: true },
     }))!;
+    return this.signCourseImage(updated);
   }
 
   /**
@@ -279,11 +280,12 @@ export class CourseService {
       );
     }
 
-    return (await this.courseRepository.findOneAndUpdate({
+    const updated = (await this.courseRepository.findOneAndUpdate({
       filter: { _id: courseId },
       update: { status: CourseStatus.PUBLISHED },
       options: { new: true },
     }))!;
+    return this.signCourseImage(updated);
   }
 
   /**
@@ -312,11 +314,12 @@ export class CourseService {
       );
     }
 
-    return (await this.courseRepository.findOneAndUpdate({
+    const updated = (await this.courseRepository.findOneAndUpdate({
       filter: { _id: courseId },
       update: { status: CourseStatus.IN_PROGRESS },
       options: { new: true },
     }))!;
+    return this.signCourseImage(updated);
   }
 
   /**
@@ -342,11 +345,12 @@ export class CourseService {
       throw new BadRequestException('This course is already archived.');
     }
 
-    return (await this.courseRepository.findOneAndUpdate({
+    const updated = (await this.courseRepository.findOneAndUpdate({
       filter: { _id: courseId },
       update: { status: CourseStatus.ARCHIVED },
       options: { new: true },
     }))!;
+    return this.signCourseImage(updated);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -436,5 +440,18 @@ export class CourseService {
       if (obj.image) obj.image = this.cdnService.getSignedUrl(obj.image);
       return obj;
     });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PRIVATE HELPERS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /** Convert a course doc to JSON and replace image S3 key with a CloudFront signed URL */
+  private signCourseImage(doc: any): any {
+    const obj = doc?.toJSON ? doc.toJSON() : doc;
+    if (obj?.image) {
+      obj.image = this.cdnService.getSignedUrl(obj.image);
+    }
+    return obj;
   }
 }

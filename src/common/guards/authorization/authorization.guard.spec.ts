@@ -2,6 +2,7 @@ import { AuthorizationGuard } from './authorization.guard';
 
 describe('AuthorizationGuard', () => {
   it('should be defined', () => {
-    expect(new AuthorizationGuard()).toBeDefined();
+    const reflectorMock = {} as any;
+    expect(new AuthorizationGuard(reflectorMock)).toBeDefined();
   });
 });

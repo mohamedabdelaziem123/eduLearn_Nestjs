@@ -19,6 +19,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { QuestionModule } from './modules/question/question.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
@@ -27,6 +28,17 @@ import { QuestionModule } from './modules/question/question.module';
       envFilePath: resolve('./config/.env'),
     }),
     MongooseModule.forRoot(process.env.DB_URI as string),
+    // TypeOrmModule.forRoot({
+    //   type: 'postgres',
+    //   url: process.env.DB_URI,
+    //   autoLoadEntities: true, // Automatically loads your entities (models)
+    //   ssl: {
+    //     rejectUnauthorized: false,
+    //   },
+    //   // WARNING: Keep synchronize TRUE for development, 
+    //   // but change to FALSE in production so it doesn't drop your tables!
+    //   synchronize: true,
+    // }),
     EventEmitterModule.forRoot(),
     ThrottlerModule.forRoot([{
       ttl: 60000, // 60 seconds
@@ -34,7 +46,6 @@ import { QuestionModule } from './modules/question/question.module';
     }]),
     AuthModule,
     UserModule,
-    //GlobalAuthenticationModule,
     AdminModule,
     CourseModule,
     TeacherModule,

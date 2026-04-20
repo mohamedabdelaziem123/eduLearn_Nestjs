@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { EntityId } from '../types';
+import { EntityId } from '../common/types';
 
 /**
  * Safely converts an EntityId (which may be a string or already an ObjectId)

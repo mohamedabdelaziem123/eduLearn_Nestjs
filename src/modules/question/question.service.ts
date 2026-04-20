@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { CourseRepository, QuestionRepository } from 'src/DB';
-import { CreateQuestionResponse } from './entities/question.entity';
+import { CreateQuestionResponse } from './dto/question.response.dto';
 
 @Injectable()
 export class QuestionService {

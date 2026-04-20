@@ -9,7 +9,7 @@ import { CdnService, S3Service } from 'src/common';
 import { CreateLessonDto, GetUploadUrlDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { LessonDocument, UserDocument } from 'src/DB';
-import { CreateLessonResponse, LessonResponse } from './entities/lesson.entity';
+import { CreateLessonResponse, LessonResponse } from './dto/lesson.response.dto';
 
 @Injectable()
 export class LessonService {

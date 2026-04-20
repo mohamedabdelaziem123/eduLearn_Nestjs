@@ -17,8 +17,8 @@ export class QuizSession {
 
 export const QuizSessionSchema = SchemaFactory.createForClass(QuizSession);
 
-// Auto-delete sessions after 24 hours (cleanup of stale sessions)
-QuizSessionSchema.index({ startedAt: 1 }, { expireAfterSeconds: 86400 });
+// Auto-delete sessions after 2 hours (cleanup of stale sessions)
+QuizSessionSchema.index({ startedAt: 1 }, { expireAfterSeconds: 7200 });
 
 export const QuizSessionModel = MongooseModule.forFeature([
   { name: QuizSession.name, schema: QuizSessionSchema },

@@ -13,7 +13,6 @@ async function bootstrap() {
   app.enableCors({
     origin: '*', // Change this to your frontend URL in production (e.g., 'https://my-frontend.com')
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
   });
   app.useGlobalPipes(
     new ValidationPipe({

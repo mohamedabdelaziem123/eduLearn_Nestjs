@@ -25,7 +25,7 @@ import {
   User,
   validFilesFormat,
 } from 'src/common';
-import { CourseResponse, CreateCourseResponse, StudentCourseResponse } from './entities/course.entity';
+import { CourseResponse, CreateCourseResponse, StudentCourseResponse } from './dto/course.response.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CourseIdParamDto } from 'src/common/dtos/courseParam.dto';

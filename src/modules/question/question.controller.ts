@@ -18,7 +18,7 @@ import {
   tokenEnum,
   User,
 } from 'src/common';
-import { CreateQuestionResponse, QuestionResponse } from './entities/question.entity';
+import { CreateQuestionResponse, QuestionResponse } from './dto/question.response.dto';
 
 @Controller('question')
 export class QuestionController {

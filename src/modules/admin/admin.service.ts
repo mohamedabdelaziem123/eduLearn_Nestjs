@@ -12,8 +12,8 @@ import {
   GetUsersQueryDto,
   GetOrdersQueryDto,
 } from './dto/create-admin.dto';
-import { providerEnum, RoleEnum, orderStatusEnum } from 'src/common';
-import { createTeacherResponse, DashboardStatsResponse } from './entities/admin.entity';
+import { CdnService, providerEnum, RoleEnum, orderStatusEnum } from 'src/common';
+import { createTeacherResponse, DashboardStatsResponse } from './dto/admin.response.dto';
 
 @Injectable()
 export class AdminService {
@@ -21,6 +21,7 @@ export class AdminService {
     private readonly userRepository: UserRepository,
     private readonly orderRepository: OrderRepository,
     private readonly courseRepository: CourseRepository,
+    private readonly cdnService: CdnService,
   ) { }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -161,13 +162,24 @@ export class AdminService {
       ];
     }
 
-    return this.userRepository.paginate({
+    const result = await this.userRepository.paginate({
       filter,
       projection: '-password -__v',
       page: query.page || 1,
       size: query.size || 11,
       options: { sort: { createdAt: -1 } },
     });
+
+    // Sign profileImage keys to CloudFront URLs
+    if (Array.isArray(result.Result)) {
+      result.Result = result.Result.map((user: any) => {
+        const obj = user.toJSON ? user.toJSON() : user;
+        if (obj.profileImage) obj.profileImage = this.cdnService.getSignedUrl(obj.profileImage);
+        return obj;
+      });
+    }
+
+    return result;
   }
 
   /** Get a single user's detailed profile */
@@ -181,7 +193,11 @@ export class AdminService {
     });
 
     if (!user) throw new NotFoundException('User not found');
-    return user;
+
+    // Sign profileImage key to CloudFront URL
+    const userObj = user.toJSON ? user.toJSON() : user;
+    if (userObj.profileImage) userObj.profileImage = this.cdnService.getSignedUrl(userObj.profileImage);
+    return userObj;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -3,7 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, PipelineStage } from 'mongoose';
 import { DatabaseRepository } from './database.repository';
 import { QuizResultDocument } from '../model/quiz-result.model';
-import { EntityId, IQuizResult, toObjectId } from 'src/common';
+import { EntityId, IQuizResult } from 'src/common';
+import { toObjectId } from '../mongoose';
 
 @Injectable()
 export class QuizResultRepository extends DatabaseRepository<

@@ -13,7 +13,7 @@ import {
   logoutDto,
 } from './dto/auth.dto';
 import { IResponse, successResponse, Auth, User, RoleEnum } from 'src/common';
-import { LoginResponse } from './entities/auth.entity';
+import { LoginResponse } from './dto/auth.response.dto';
 
 
 

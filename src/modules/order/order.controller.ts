@@ -5,12 +5,15 @@ import {
   Patch,
   Param,
   Query,
+  Get,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { OrderService } from './order.service';
 import { CreateOrderParamsDto } from './dto/create-order.dto';
 import { Auth, IResponse, RoleEnum, successResponse, User } from 'src/common';
 import { type UserDocument } from 'src/DB';
-import { CheckoutSessionResponse, CreateOrderResponse, OrderResponse } from './entities/order.entity';
+import { CheckoutSessionResponse, CreateOrderResponse, OrderResponse } from './dto/order.response.dto';
 
 @Controller('order')
 export class OrderController {
@@ -31,6 +34,12 @@ export class OrderController {
     @Query('hmac') hmacQuery: string,
   ): Promise<void> {
     await this.orderService.webhook(body, hmacQuery);
+  }
+
+  /** Payment gateway redirects here after payment — sends user back to the frontend */
+  @Get('/payment-success')
+  paymentSuccess(@Res() res: Response): void {
+    res.redirect('http://localhost:4200/discovery');
   }
 
   /** Check out a pending order — returns a Paymob payment URL */

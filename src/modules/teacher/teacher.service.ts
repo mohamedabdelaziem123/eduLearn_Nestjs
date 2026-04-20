@@ -32,7 +32,7 @@ export class TeacherService {
     const pageParam = page === 'all' ? 'all' : Number(page);
     const sizeParam = Number(size);
 
-    return this.courseRepository.paginate({
+    const result = await this.courseRepository.paginate({
       filter: { teacherId: user._id, status: { $in: [CourseStatus.PUBLISHED, CourseStatus.IN_PROGRESS] } },
       size: sizeParam,
       page: pageParam,
@@ -41,6 +41,17 @@ export class TeacherService {
         populate: [{ path: 'subjectId', select: 'name' }],
       },
     });
+
+    // Sign course image keys to CloudFront URLs
+    if (Array.isArray(result.Result)) {
+      result.Result = result.Result.map((course: any) => {
+        const obj = course.toJSON ? course.toJSON() : course;
+        if (obj.image) obj.image = this.cdnService.getSignedUrl(obj.image);
+        return obj;
+      });
+    }
+
+    return result;
   }
 
   /** Get a specific course assigned to a teacher */
@@ -56,6 +67,9 @@ export class TeacherService {
       );
     }
 
-    return course;
+    // Sign course image key to CloudFront URL
+    const courseObj = course.toJSON ? course.toJSON() : course;
+    if (courseObj.image) courseObj.image = this.cdnService.getSignedUrl(courseObj.image);
+    return courseObj;
   }
 }

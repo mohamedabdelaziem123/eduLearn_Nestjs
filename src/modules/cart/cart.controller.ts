@@ -9,7 +9,7 @@ import { CartService } from './cart.service';
 import { AddToCartDto, RemoveFromCartDto } from './dto/create-cart.dto';
 import { Auth, IResponse, RoleEnum, successResponse, User } from 'src/common';
 import { type UserDocument } from 'src/DB';
-import { CartResponse } from './entities/cart.entity';
+import { CartResponse } from './dto/cart.response.dto';
 
 @Controller('cart')
 export class CartController {

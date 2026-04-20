@@ -24,7 +24,7 @@ import {
 } from 'src/common';
 import { type UserDocument } from 'src/DB';
 import { QuizAttemptGuard } from 'src/common';
-import { CreateQuizResponse, QuizResponse } from './entities/quiz.entity';
+import { CreateQuizResponse, QuizResponse } from './dto/quiz.response.dto';
 import {
     QuizResultPaginatedResponse,
     QuizAttemptDetailResponse,
@@ -33,7 +33,7 @@ import {
     QuizResultResponse,
     LessonPerformanceResponse,
     CoursePerformanceResponse,
-} from './entities/quiz-result.entity';
+} from './dto/quiz-result.response.dto';
 
 @Controller('quiz')
 export class QuizController {
@@ -141,8 +141,8 @@ export class QuizController {
     }
 
     /** GET /quiz/:id/start — Student starts a quiz (answers are hidden!) */
-    @Auth([RoleEnum.student])
     @UseGuards(QuizAttemptGuard)
+    @Auth([RoleEnum.student])
     @Get(':id/start')
     async startQuiz(
         @Param('id') quizId: string,
@@ -153,8 +153,8 @@ export class QuizController {
     }
 
     /** POST /quiz/:id/submit — Student submits answers and gets graded */
-    @Auth([RoleEnum.student])
     @UseGuards(QuizAttemptGuard)
+    @Auth([RoleEnum.student])
     @Post(':id/submit')
     async submitQuiz(
         @Param('id') quizId: string,

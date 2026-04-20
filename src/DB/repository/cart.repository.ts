@@ -3,7 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DatabaseRepository } from './database.repository';
 import { CartDocument } from '../model/cart.model';
-import { EntityId, ICart, toObjectId } from 'src/common';
+import { EntityId, ICart } from 'src/common';
+import { toObjectId } from '../mongoose';
 
 @Injectable()
 export class CartRepository extends DatabaseRepository<ICart, CartDocument> {

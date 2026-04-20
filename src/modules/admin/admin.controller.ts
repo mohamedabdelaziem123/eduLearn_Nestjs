@@ -6,9 +6,9 @@ import {
   GetOrdersQueryDto,
 } from './dto/create-admin.dto';
 import { Auth, GetAllResponse, IResponse, RoleEnum, successResponse, tokenEnum } from 'src/common';
-import { createTeacherResponse, DashboardStatsResponse } from './entities/admin.entity';
-import { UserResponse } from '../user/entities/user.entity';
-import { OrderResponse } from '../order/entities/order.entity';
+import { createTeacherResponse, DashboardStatsResponse } from './dto/admin.response.dto';
+import { UserResponse } from '../user/dto/user.response.dto';
+import { OrderResponse } from '../order/dto/order.response.dto';
 
 @Controller('admin')
 @Auth([RoleEnum.admin], tokenEnum.access)
@@ -101,6 +101,7 @@ export class AdminController {
   }
 
   /** GET /admin/orders/:orderId — single order detail */
+  @Auth([RoleEnum.admin , RoleEnum.student], tokenEnum.access)
   @Get('orders/:orderId')
   async getOrderById(
     @Param('orderId') orderId: string,

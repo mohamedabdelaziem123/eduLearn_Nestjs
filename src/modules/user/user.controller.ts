@@ -24,7 +24,7 @@ import {
 import type { UserDocument } from 'src/DB';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateProfileDto } from './dto/update-user.dto';
-import { UserResponse } from './entities/user.entity';
+import { UserResponse } from './dto/user.response.dto';
 
 @Controller('user')
 @Auth([RoleEnum.student, RoleEnum.teacher, RoleEnum.admin], tokenEnum.access)

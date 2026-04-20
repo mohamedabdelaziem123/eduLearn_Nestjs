@@ -3,7 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DatabaseRepository } from './database.repository';
 import { QuizSessionDocument } from '../model/quiz-session.model';
-import { EntityId, toObjectId } from 'src/common';
+import { EntityId } from 'src/common';
+import { toObjectId } from '../mongoose';
 
 @Injectable()
 export class QuizSessionRepository extends DatabaseRepository<

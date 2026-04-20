@@ -10,11 +10,12 @@ import {
   QuizResultRepository,
   QuizSessionRepository,
   CourseRepository,
+  LessonRepository,
 } from 'src/DB';
-import { DifficultyLevel } from 'src/common';
+import { DifficultyLevel, EntityId } from 'src/common';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
-import { CreateQuizResponse } from './entities/quiz.entity';
+import { CreateQuizResponse } from './dto/quiz.response.dto';
 import {
   QuizResultPaginatedResponse,
   QuizAttemptDetailResponse,
@@ -22,7 +23,7 @@ import {
   MyAttemptsGroupedResponse,
   LessonPerformanceResponse,
   CoursePerformanceResponse,
-} from './entities/quiz-result.entity';
+} from './dto/quiz-result.response.dto';
 
 @Injectable()
 export class QuizService {
@@ -34,6 +35,7 @@ export class QuizService {
     private readonly quizResultRepo: QuizResultRepository,
     private readonly quizSessionRepo: QuizSessionRepository,
     private readonly courseRepo: CourseRepository,
+    private readonly lessonRepo: LessonRepository,
   ) { }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -80,6 +82,22 @@ export class QuizService {
       pickedQuestionIds.push(...selected.map((q) => q._id.toString()));
     }
 
+    // If this lesson already has a quiz, clean up the old one
+    if (dto.lessonId) {
+      const lesson = await this.lessonRepo.findOne({ filter: { _id: dto.lessonId } });
+      if (lesson?.quizId) {
+        const oldQuizId = lesson.quizId.toString();
+        // Remove old quiz from course's quizzes array
+        await this.courseRepo.removeQuizFromCourse(dto.courseId, oldQuizId);
+        // Delete old quiz results
+        await this.quizResultRepo.deleteByQuizId(oldQuizId);
+        // Delete old quiz document
+        await this.quizRepo.deleteOne({ filter: { _id: oldQuizId } });
+        // Clear the quizId on the lesson (will be re-set below)
+        await this.lessonRepo.removeQuizFromLesson(dto.lessonId);
+      }
+    }
+
     const quiz = await this.quizRepo.createQuiz({
       title: dto.title,
       description: dto.description,
@@ -91,6 +109,7 @@ export class QuizService {
     });
 
     await this.courseRepo.addQuizToCourse(dto.courseId, quiz._id.toString());
+    if (dto.lessonId) await this.lessonRepo.addQuizToLesson(dto.lessonId, quiz._id.toString());
 
     return {
       quizId: quiz._id,
@@ -341,6 +360,7 @@ export class QuizService {
         attemptId: result._id,
         quizTitle: result.quizId?.title ?? 'Unknown Quiz',
         lessonTitle: result.lessonId?.title ?? null,
+        lessonId: result.lessonId._id as EntityId,
         score: result.score,
         totalQuestions: result.totalQuestions,
         percentage: result.percentage,

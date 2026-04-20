@@ -124,6 +124,7 @@ export class AttemptSummary {
   attemptId: EntityId;
   quizTitle: string;
   lessonTitle: string | null;
+  lessonId: EntityId;
   score: number;
   totalQuestions: number;
   percentage: number;

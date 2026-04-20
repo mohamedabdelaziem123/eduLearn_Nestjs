@@ -22,7 +22,7 @@ import { CourseIdParamDto } from 'src/common/dtos/courseParam.dto';
 import { type UserDocument } from 'src/DB';
 import { CreateLessonDto, GetUploadUrlDto } from './dto/create-lesson.dto';
 import { LessonAccessGuard } from 'src/common';
-import { CreateLessonResponse, LessonResponse } from './entities/lesson.entity';
+import { CreateLessonResponse, LessonResponse } from './dto/lesson.response.dto';
 
 @Controller()
 export class LessonController {

@@ -3,7 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DatabaseRepository } from './database.repository';
 import { OrderDocument } from '../model/order.model';
-import { EntityId, IOrder, orderStatusEnum, toObjectId } from 'src/common';
+import { EntityId, IOrder, orderStatusEnum } from 'src/common';
+import { toObjectId } from '../mongoose';
 
 @Injectable()
 export class OrderRepository extends DatabaseRepository<IOrder, OrderDocument> {

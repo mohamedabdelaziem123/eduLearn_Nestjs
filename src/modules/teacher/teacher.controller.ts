@@ -12,8 +12,8 @@ import {
 } from 'src/common';
 import { type UserDocument } from 'src/DB';
 import { CourseIdParamDto } from 'src/common/dtos/courseParam.dto';
-import { TeacherResponse } from './entities/teacher.entity';
-import { CourseResponse } from '../course/entities/course.entity';
+import { TeacherResponse } from './dto/teacher.response.dto';
+import { CourseResponse } from '../course/dto/course.response.dto';
 
 @Controller('teacher')
 export class TeacherController {

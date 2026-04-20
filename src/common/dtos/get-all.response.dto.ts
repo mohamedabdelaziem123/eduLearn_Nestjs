@@ -1,4 +1,4 @@
-import { Lean } from 'src/DB/repository/database.repository';
+import { Lean } from 'src/DB';
 
 export class GetAllResponse<T = any> {
   DocCount: number | undefined;
@@ -7,7 +7,3 @@ export class GetAllResponse<T = any> {
   limit: number | undefined;
   Result: T[] | Lean<T>;
 }
-
-// export class GetOneResponse <T=any>{
-//   brand: T | Lean<T>;
-// }

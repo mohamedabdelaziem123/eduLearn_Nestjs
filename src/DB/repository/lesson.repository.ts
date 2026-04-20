@@ -3,7 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DatabaseRepository } from './database.repository';
 import { LessonDocument } from '../model/lesson.model';
-import { EntityId, ILesson, toObjectId } from 'src/common';
+import { EntityId, ILesson } from 'src/common';
+import { toObjectId } from '../mongoose'
 
 @Injectable()
 export class LessonRepository extends DatabaseRepository<
@@ -16,6 +17,14 @@ export class LessonRepository extends DatabaseRepository<
     super(model);
   }
 
+  async addQuizToLesson(lessonId: string, quizId: string): Promise<void> {
+    await this.model.findByIdAndUpdate(lessonId, { quizId: toObjectId(quizId) });
+  }
+
+  /** Clear the quizId field on a lesson */
+  async removeQuizFromLesson(lessonId: string): Promise<void> {
+    await this.model.findByIdAndUpdate(lessonId, { quizId: null });
+  }
   /** Create a lesson, casting string IDs to ObjectId internally */
   async createLesson(data: {
     title: string;
